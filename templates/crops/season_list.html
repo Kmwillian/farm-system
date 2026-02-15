@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block page_title %}All Seasons{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card" style="padding: 15px; margin-bottom: 20px;">
+    <form method="GET" style="display: flex; gap: 10px;">
+        <select name="status" class="form-control" style="padding: 8px;" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            <option value="planned" {% if selected_status == 'planned' %}selected{% endif %}>Planned</option>
+            <option value="planted" {% if selected_status == 'planted' %}selected{% endif %}>Planted</option>
+            <option value="harvested" {% if selected_status == 'harvested' %}selected{% endif %}>Harvested</option>
+            <option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option>
+        </select>
+        <select name="crop_type" class="form-control" style="padding: 8px;" onchange="this.form.submit()">
+            <option value="">All Crops</option>
+            <option value="sugarcane" {% if selected_crop == 'sugarcane' %}selected{% endif %}>Sugarcane</option>
+            <option value="maize" {% if selected_crop == 'maize' %}selected{% endif %}>Maize</option>
+            <option value="beans" {% if selected_crop == 'beans' %}selected{% endif %}>Beans</option>
+            <option value="vegetables" {% if selected_crop == 'vegetables' %}selected{% endif %}>Vegetables</option>
+        </select>
+    </form>
+</div>
+
+{% if seasons %}
+    {% for season in seasons %}
+    <a href="{% url 'crops:season_detail' season.pk %}" style="text-decoration: none; color: inherit;">
+        <div class="list-item">
+            <div class="list-item-title">{{ season.get_crop_type_display }} <span style="font-weight:normal; font-size: 14px; color:#666;">({{ season.farm.name }})</span></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <div class="badge {% if season.status == 'harvested' %}badge-success{% elif season.status == 'planted' %}badge-info{% else %}badge-warning{% endif %}">
+                    {{ season.get_status_display }}
+                </div>
+                <div class="list-item-meta">
+                    {{ season.planting_date }}
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🌾</div>
+        <p>No seasons found matching filters.</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block page_title %}Animals{% endblock %}
+{% block content %}
+<div class="card">
+<a href="{% url 'dairy:animal_add' %}" class="btn btn-primary">+ Add Animal</a>
+<div style="margin:15px 0">
+<select onchange="window.location.href='?type='+this.value" class="form-control">
+<option value="">All Animals</option>
+<option value="cow" {% if selected_type == 'cow' %}selected{% endif %}>Cows Only</option>
+<option value="sheep" {% if selected_type == 'sheep' %}selected{% endif %}>Sheep Only</option>
+</select>
+</div>
+</div>
+{% for animal in animals %}
+<div class="list-item" onclick="window.location.href='{% url 'dairy:animal_detail' animal.pk %}'">
+<div class="list-item-title">{{ animal.get_animal_type_display }} {{ animal.tag_number }} - {{ animal.name|default:"Unnamed" }}</div>
+<div class="list-item-meta">{{ animal.breed }} | {{ animal.get_gender_display }} | {{ animal.get_status_display }}</div>
+</div>
+{% empty %}<div class="empty-state"><div class="empty-icon">🐄</div><p>No animals yet. Add your first animal!</p></div>
+{% endfor %}
+{% endblock %}

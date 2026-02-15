@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if transaction %}Edit{% else %}Add{% endif %} Transaction{% endblock %}
+
+{% block content %}
+<div class="card">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label">Transaction Type</label>
+            <select name="transaction_type" class="form-control" required>
+                <option value="income" {% if transaction.transaction_type == 'income' or initial_type == 'income' %}selected{% endif %}>Income (+)</option>
+                <option value="expense" {% if transaction.transaction_type == 'expense' or initial_type == 'expense' %}selected{% endif %}>Expense (-)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-control" required>
+                {% for val, label in transaction.CATEGORIES %}
+                <option value="{{ val }}" {% if transaction.category == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Amount (KSh)</label>
+            <input type="number" step="0.01" name="amount" class="form-control" value="{{ transaction.amount }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" name="date" class="form-control" value="{{ transaction.date|date:'Y-m-d'|default:today|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-control" value="{{ transaction.description }}" placeholder="e.g. Sold 10L milk">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select name="payment_method" class="form-control">
+                <option value="cash" {% if transaction.payment_method == 'cash' %}selected{% endif %}>Cash</option>
+                <option value="mpesa" {% if transaction.payment_method == 'mpesa' %}selected{% endif %}>M-Pesa</option>
+                <option value="bank" {% if transaction.payment_method == 'bank' %}selected{% endif %}>Bank Transfer</option>
+                <option value="credit" {% if transaction.payment_method == 'credit' %}selected{% endif %}>Credit/Pending</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Transaction</button>
+        {% if transaction %}
+            <a href="{% url 'finance:transaction_delete' transaction.pk %}" class="btn btn-secondary" style="background: #dc3545;">Delete</a>
+        {% endif %}
+        <a href="{% url 'finance:transaction_list' %}" class="btn btn-secondary" style="background: #999;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

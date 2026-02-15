@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Crops Dashboard{% endblock %}
+{% block page_title %}Crops Overview{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+    <div class="stat-box">
+        <div class="stat-value">{{ active_seasons }}</div>
+        <div class="stat-label">Active Seasons</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value">{{ total_acres }}</div>
+        <div class="stat-label">Total Acres</div>
+    </div>
+</div>
+
+{% if harvest_due %}
+<div class="card" style="border-left: 5px solid #ffc107;">
+    <div class="card-title">⚠️ Harvest Alerts</div>
+    {% for season in harvest_due %}
+    <div class="list-item">
+        <div class="list-item-title">{{ season.get_crop_type_display }}</div>
+        <div class="list-item-meta">Due: {{ season.expected_harvest_date }} ({{ season.farm.name }})</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'crops:farm_list' %}" class="btn btn-primary">Manage Farms & Plots</a>
+    <a href="{% url 'crops:season_add' %}" class="btn btn-success">Start New Season</a>
+</div>
+
+<div class="card">
+    <div class="card-title">Recent Harvests</div>
+    {% for harvest in recent_harvests %}
+    <div class="list-item">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <div class="list-item-title">{{ harvest.get_crop_type_display }}</div>
+                <div class="list-item-meta">{{ harvest.actual_harvest_date }}</div>
+            </div>
+            <div style="font-weight: bold; color: #2e7d32;">{{ harvest.actual_yield_kg }} kg</div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="empty-state">No harvests recorded in the last 30 days.</p>
+    {% endfor %}
+</div>
+{% endblock %}

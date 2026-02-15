@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Dairy Management{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_cows }}</div>
+            <div class="stat-label">🐄 Cows</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ total_sheep }}</div>
+            <div class="stat-label">🐑 Sheep</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ today_milk|floatformat:1 }}L</div>
+            <div class="stat-label">Today's Milk</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ total_animals }}</div>
+            <div class="stat-label">Total Animals</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">Quick Actions</div>
+    <a href="{% url 'dairy:animal_add' %}" class="btn btn-primary">+ Add Animal</a>
+    <a href="{% url 'dairy:milk_add' %}" class="btn btn-success">+ Record Milk</a>
+    <a href="{% url 'dairy:animal_list' %}" class="btn btn-secondary">View All Animals</a>
+    <a href="{% url 'dairy:milk_list' %}" class="btn btn-secondary">View Milk Records</a>
+    <a href="{% url 'dairy:feed_add' %}" class="btn btn-secondary">+ Add Feed Purchase</a>
+</div>
+
+{% if upcoming_health %}
+<div class="card">
+    <div class="card-title">⚠️ Health Reminders</div>
+    {% for h in upcoming_health %}
+    <div class="list-item">
+        <div class="list-item-title">{{ h.animal.tag_number }} - {{ h.animal.name }}</div>
+        <div class="list-item-meta">{{ h.get_record_type_display }} due {{ h.next_due_date|date:"d/m/Y" }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if pregnancies_due %}
+<div class="card">
+    <div class="card-title">🤰 Deliveries Expected Soon</div>
+    {% for preg in pregnancies_due %}
+    <div class="list-item">
+        <div class="list-item-title">{{ preg.animal.tag_number }} - {{ preg.animal.name }}</div>
+        <div class="list-item-meta">Expected: {{ preg.expected_delivery|date:"d/m/Y" }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

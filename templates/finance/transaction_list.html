@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block page_title %}History{% endblock %}
+
+{% block content %}
+<div class="card" style="padding: 15px;">
+    <form method="GET" style="display: flex; gap: 5px;">
+        <select name="type" class="form-control" style="padding: 8px; font-size: 13px;">
+            <option value="">All Types</option>
+            <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Income</option>
+            <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Expense</option>
+        </select>
+        <select name="days" class="form-control" style="padding: 8px; font-size: 13px;">
+            <option value="7" {% if days == 7 %}selected{% endif %}>7 Days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>30 Days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>90 Days</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm" style="width: auto; margin: 0;">Filter</button>
+    </form>
+</div>
+
+<div class="card" style="background: #2e7d32; color: white;">
+    <div style="display: flex; justify-content: space-between; text-align: center;">
+        <div>
+            <div style="font-size: 12px; opacity: 0.8;">Total Income</div>
+            <div style="font-weight: bold;">{{ total_income }}</div>
+        </div>
+        <div>
+            <div style="font-size: 12px; opacity: 0.8;">Total Expense</div>
+            <div style="font-weight: bold;">{{ total_expense }}</div>
+        </div>
+        <div>
+            <div style="font-size: 12px; opacity: 0.8;">Net</div>
+            <div style="font-weight: bold;">{{ net_profit }}</div>
+        </div>
+    </div>
+</div>
+
+{% for trans in transactions %}
+<a href="{% url 'finance:transaction_edit' trans.pk %}" style="text-decoration: none; color: inherit;">
+    <div class="list-item">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <div class="list-item-title">{{ trans.description|truncatechars:25 }}</div>
+                <div class="list-item-meta">{{ trans.get_category_display }} | {{ trans.date }}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: bold; color: {% if trans.transaction_type == 'income' %}#2e7d32{% else %}#c62828{% endif %};">
+                    {{ trans.amount }}
+                </div>
+                <span class="badge {% if trans.payment_method == 'mpesa' %}badge-info{% else %}badge-warning{% endif %}">
+                    {{ trans.get_payment_method_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+</a>
+{% endfor %}
+{% endblock %}

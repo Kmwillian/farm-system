@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ season.get_crop_type_display }} Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profit-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+    }
+    .profit-card:last-child { border-bottom: none; }
+    .profit-label { font-size: 14px; color: #555; }
+    .profit-val { font-weight: 600; font-size: 16px; }
+    
+    .tabs {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+    }
+    .tab {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        color: #666;
+        font-weight: 500;
+    }
+    .tab.active {
+        color: #2e7d32;
+        border-bottom: 2px solid #2e7d32;
+        margin-bottom: -2px;
+    }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .progress-track {
+        background: #eee;
+        height: 10px;
+        border-radius: 5px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #2e7d32;
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <h2 style="font-size: 22px; color: #2e7d32;">{{ season.get_crop_type_display }}</h2>
+            <div style="font-size: 14px; color: #666; margin-top: 4px;">{{ season.farm.name }} &bull; {{ season.area_planted_acres }} Acres</div>
+        </div>
+        <div class="badge {% if season.status == 'harvested' %}badge-success{% elif season.status == 'planted' %}badge-info{% else %}badge-warning{% endif %}">
+            {{ season.get_status_display }}
+        </div>
+    </div>
+
+    <!-- Visual Timeline -->
+    {% if season.status == 'planted' %}
+    <div style="margin-top: 15px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+            <span>Planted</span>
+            <span>Harvest in {{ season.days_to_harvest }} days</span>
+        </div>
+        <div class="progress-track">
+            <!-- Simple calculation for visual progress (optional) -->
+            <div class="progress-fill" style="width: 40%;"></div> 
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 15px; text-align: right;">
+        <a href="{% url 'crops:season_edit' season.pk %}" class="btn btn-sm btn-secondary" style="width: auto; display: inline-block;">Edit Season</a>
+    </div>
+</div>
+
+<!-- Financial Summary Card -->
+<div class="card" style="background: #f1f8e9; border: 1px solid #c5e1a5;">
+    <div class="card-title" style="font-size: 16px;">Financial Summary</div>
+    <div class="profit-card">
+        <span class="profit-label">Total Input Cost</span>
+        <span class="profit-val" style="color: #d32f2f;">- ${{ total_input_cost }}</span>
+    </div>
+    <div class="profit-card">
+        <span class="profit-label">Total Revenue</span>
+        <span class="profit-val" style="color: #2e7d32;">+ ${{ total_revenue }}</span>
+    </div>
+    <div class="profit-card" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 5px;">
+        <span class="profit-label">Net Profit/Loss</span>
+        <span class="profit-val" style="color: {% if profit >= 0 %}#2e7d32{% else %}#d32f2f{% endif %}; font-size: 18px;">
+            ${{ profit }}
+        </span>
+    </div>
+</div>
+
+<!-- Interactive Tabs -->
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('inputs')">Inputs ({{ inputs.count }})</div>
+    <div class="tab" onclick="switchTab('sales')">Sales ({{ sales.count }})</div>
+</div>
+
+<!-- Inputs Tab -->
+<div id="tab-inputs" class="tab-content active">
+    <a href="{% url 'crops:input_add' season.id %}" class="btn btn-primary btn-sm">➕ Add Input</a>
+    {% if inputs %}
+        {% for input in inputs %}
+        <div class="list-item">
+            <div class="list-item-title">{{ input.get_input_type_display }}</div>
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">{{ input.description }}</div>
+            <div class="list-item-meta">
+                {{ input.date }} &bull; {{ input.quantity }}
+            </div>
+            <div style="text-align: right; font-size: 14px; color: #d32f2f; margin-top: 5px;">
+                ${{ input.cost }}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state"><p>No inputs recorded.</p></div>
+    {% endif %}
+</div>
+
+<!-- Sales Tab -->
+<div id="tab-sales" class="tab-content">
+    <a href="{% url 'crops:sale_add' season.id %}" class="btn btn-success btn-sm">💰 Record Sale</a>
+    {% if sales %}
+        {% for sale in sales %}
+        <div class="list-item">
+            <div class="list-item-title">Sale #{{ sale.id }}</div>
+            <div style="font-size: 14px; margin-bottom: 4px;">{{ sale.buyer|default:"Buyer N/A" }}</div>
+            <div class="list-item-meta">
+                {{ sale.date }} &bull; {{ sale.quantity_kg }} kg @ ${{ sale.price_per_kg }}/kg
+            </div>
+            <div style="text-align: right; font-size: 14px; color: #2e7d32; margin-top: 5px; font-weight: 600;">
+                ${{ sale.total_amount }}
+            </div>
+            <div style="margin-top: 5px;">
+                <span class="badge {% if sale.payment_status == 'paid' %}badge-success{% else %}badge-warning{% endif %}">{{ sale.get_payment_status_display }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state"><p>No sales recorded yet.</p></div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabName) {
+    // Hide all contents
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Deactivate all tabs
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    
+    // Activate selected
+    document.getElementById('tab-' + tabName).classList.add('active');
+    // Highlight tab button (finding by onclick attribute for simplicity in this snippet)
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(t => {
+        if(t.getAttribute('onclick').includes(tabName)) {
+            t.classList.add('active');
+        }
+    });
+}
+</script>
+{% endblock %}

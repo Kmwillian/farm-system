@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{% if season %}Edit Season{% else %}New Season{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">{% if season %}Edit{% else %}Plan New{% endif} Season</div>
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label">Farm</label>
+            <select name="farm" class="form-control" required>
+                <option value="">Select Farm...</option>
+                {% for f in farms %}
+                <option value="{{ f.id }}" {% if season.farm.id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Crop Type</label>
+            <select name="crop_type" class="form-control" required>
+                <option value="sugarcane" {% if season.crop_type == 'sugarcane' %}selected{% endif %}>Sugarcane</option>
+                <option value="maize" {% if season.crop_type == 'maize' %}selected{% endif %}>Maize</option>
+                <option value="beans" {% if season.crop_type == 'beans' %}selected{% endif %}>Beans</option>
+                <option value="vegetables" {% if season.crop_type == 'vegetables' %}selected{% endif %}>Vegetables</option>
+                <option value="other" {% if season.crop_type == 'other' %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Variety (Optional)</label>
+            <input type="text" name="crop_variety" class="form-control" placeholder="e.g. Hybrid 514" value="{{ season.crop_variety|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Area Planted (Acres)</label>
+            <input type="number" step="0.01" name="area_planted_acres" class="form-control" required value="{{ season.area_planted_acres }}">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label class="form-label">Planting Date</label>
+                <input type="date" name="planting_date" class="form-control" required value="{{ season.planting_date|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Exp. Harvest</label>
+                <input type="date" name="expected_harvest_date" class="form-control" required value="{{ season.expected_harvest_date|date:'Y-m-d' }}">
+            </div>
+        </div>
+
+        <!-- Advanced: Toggle visibility via simple JS if needed, kept simple for mobile -->
+        <details style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <summary style="cursor: pointer; font-weight: 500; color: #555;">Yield & Harvest Details</summary>
+            <div style="margin-top: 15px;">
+                <div class="form-group">
+                    <label class="form-label">Actual Harvest Date</label>
+                    <input type="date" name="actual_harvest_date" class="form-control" value="{{ season.actual_harvest_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expected Yield (kg)</label>
+                    <input type="number" name="expected_yield_kg" class="form-control" value="{{ season.expected_yield_kg|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Actual Yield (kg)</label>
+                    <input type="number" name="actual_yield_kg" class="form-control" value="{{ season.actual_yield_kg|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="planned" {% if season.status == 'planned' %}selected{% endif %}>Planned</option>
+                        <option value="planted" {% if season.status == 'planted' %}selected{% endif %}>Planted/Growing</option>
+                        <option value="harvested" {% if season.status == 'harvested' %}selected{% endif %}>Harvested</option>
+                        <option value="failed" {% if season.status == 'failed' %}selected{% endif %}>Failed/Lost</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+        
+        <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2">{{ season.notes|default:'' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Season</button>
+        <a href="{% if season %}{% url 'crops:season_detail' season.pk %}{% else %}{% url 'crops:season_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block page_title %}My Farms{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h2 style="font-size: 18px; color: #333;">Registered Farms</h2>
+    <a href="{% url 'crops:farm_add' %}" class="btn btn-primary btn-sm" style="width: auto; margin: 0;">➕ Add</a>
+</div>
+
+{% if farms %}
+    {% for farm in farms %}
+    <a href="{% url 'crops:farm_detail' farm.pk %}" style="text-decoration: none; color: inherit;">
+        <div class="list-item">
+            <div class="list-item-title">{{ farm.name }}</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <div class="list-item-meta">
+                    📏 {{ farm.size_acres }} Acres
+                </div>
+                {% if farm.soil_type %}
+                <div class="badge badge-info">{{ farm.soil_type }}</div>
+                {% endif %}
+            </div>
+            {% if farm.location %}
+            <div class="list-item-meta" style="margin-top: 5px;">📍 {{ farm.location }}</div>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🚜</div>
+        <p>No farms registered yet.</p>
+        <a href="{% url 'crops:farm_add' %}" class="btn btn-primary">Add Your First Farm</a>
+    </div>
+{% endif %}
+{% endblock %}

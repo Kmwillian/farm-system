@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ farm.name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); color: white;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <h1 style="font-size: 24px; margin-bottom: 5px;">{{ farm.name }}</h1>
+            <div style="opacity: 0.9;">📍 {{ farm.location|default:"Location not set" }}</div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 24px; font-weight: 700;">{{ farm.size_acres }}</div>
+            <div style="font-size: 12px; opacity: 0.9;">ACRES</div>
+        </div>
+    </div>
+    {% if farm.soil_type %}
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 12px;">{{ farm.soil_type }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+    <h2 style="font-size: 18px;">Crop Seasons ({{ seasons.count }})</h2>
+    <a href="{% url 'crops:season_add' %}?farm={{ farm.id }}" class="btn btn-success btn-sm" style="width: auto;">➕ New Season</a>
+</div>
+
+{% if seasons %}
+    {% for season in seasons %}
+    <a href="{% url 'crops:season_detail' season.pk %}" style="text-decoration: none; color: inherit;">
+        <div class="list-item">
+            <div style="display: flex; justify-content: space-between;">
+                <div class="list-item-title">{{ season.get_crop_type_display }}</div>
+                <div class="badge {% if season.status == 'harvested' %}badge-success{% elif season.status == 'failed' %}badge-danger{% elif season.status == 'planted' %}badge-info{% else %}badge-warning{% endif %}">
+                    {{ season.get_status_display }}
+                </div>
+            </div>
+            <div class="list-item-meta" style="margin-top: 5px;">
+                Planted: {{ season.planting_date }} &bull; {{ season.area_planted_acres }} Acres
+            </div>
+            {% if season.status == 'planted' %}
+                <div style="margin-top: 8px; height: 4px; background: #eee; border-radius: 2px; overflow: hidden;">
+                    <div style="width: 60%; height: 100%; background: #43a047;"></div>
+                </div>
+                <div style="font-size: 11px; color: #2e7d32; margin-top: 2px;">Harvest in {{ season.days_to_harvest }} days</div>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <p>No crops planted here yet.</p>
+    </div>
+{% endif %}
+{% endblock %}

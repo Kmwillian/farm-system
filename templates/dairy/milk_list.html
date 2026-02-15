@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Milk Production Records{% endblock %}
+
+{% block content %}
+<!-- Add Button & Filters -->
+<div class="card">
+    <a href="{% url 'dairy:milk_add' %}" class="btn btn-success">+ Record Milk</a>
+    
+    <div style="margin:15px 0;">
+        <label class="form-label">Time Period:</label>
+        <select onchange="window.location.href='?days='+this.value" class="form-control">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 Days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 Days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 Days</option>
+        </select>
+    </div>
+    
+    <!-- Total Summary -->
+    <div class="stat-box" style="background:#e8f5e9; margin-top:15px;">
+        <div class="stat-value" style="color:#2e7d32;">{{ total_liters|floatformat:1 }} Liters</div>
+        <div class="stat-label">Total Last {{ days }} Days</div>
+    </div>
+</div>
+
+<!-- Milk Records List -->
+{% for record in records %}
+<div class="list-item" onclick="window.location.href='{% url 'dairy:animal_detail' record.animal.pk %}'">
+    <div class="list-item-title">
+        {{ record.animal.tag_number }} - {{ record.animal.name|default:"Unnamed" }}
+        <span style="float:right; color:#2e7d32; font-weight:bold;">{{ record.total_liters }}L</span>
+    </div>
+    <div class="list-item-meta">
+        {{ record.date|date:"d/m/Y" }} | 
+        Morning: {{ record.morning_liters }}L | 
+        Evening: {{ record.evening_liters }}L
+        {% if record.notes %}<br>{{ record.notes|truncatewords:10 }}{% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="empty-state">
+    <div class="empty-icon">🥛</div>
+    <p>No milk records for the last {{ days }} days</p>
+    <a href="{% url 'dairy:milk_add' %}" class="btn btn-success" style="margin-top:15px;">Record First Entry</a>
+</div>
+{% endfor %}
+
+<!-- Average Production -->
+{% if records %}
+<div class="card" style="background:#e3f2fd;">
+    <h4 style="margin:0 0 10px; color:#1976d2;">📊 Statistics</h4>
+    <p style="margin:5px 0; color:#1976d2;">
+        <strong>Average per Day:</strong> {{ total_liters|floatformat:1 }} ÷ {{ days }} = 
+        {% widthratio total_liters days 1 %} liters/day
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

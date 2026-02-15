@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Finance Dashboard{% endblock %}
+{% block page_title %}Finance Overview{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">This Month ({{ today|date:"F" }})</div>
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="stat-value" style="color: #2e7d32;">{{ month_income }}</div>
+            <div class="stat-label">Income</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" style="color: #c62828;">{{ month_expense }}</div>
+            <div class="stat-label">Expenses</div>
+        </div>
+    </div>
+    <div class="stat-box" style="background: {% if month_profit >= 0 %}#e8f5e9{% else %}#ffebee{% endif %};">
+        <div class="stat-value">KSh {{ month_profit }}</div>
+        <div class="stat-label">Net Profit</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+    <a href="{% url 'finance:transaction_add' %}?type=income" class="btn btn-success" style="margin:0">+ Income</a>
+    <a href="{% url 'finance:transaction_add' %}?type=expense" class="btn btn-secondary" style="background:#c62828; margin:0">- Expense</a>
+</div>
+
+<div class="card">
+    <div class="card-title">Recent Activity</div>
+    {% for trans in recent_transactions %}
+    <div class="list-item" style="border-left: 4px solid {% if trans.transaction_type == 'income' %}#2e7d32{% else %}#c62828{% endif %};">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="list-item-title">{{ trans.get_category_display }}</div>
+                <div class="list-item-meta">{{ trans.date }} • {{ trans.get_payment_method_display }}</div>
+            </div>
+            <div style="font-weight: bold; color: {% if trans.transaction_type == 'income' %}#2e7d32{% else %}#c62828{% endif %};">
+                {% if trans.transaction_type == 'income' %}+{% else %}-{% endif %} {{ trans.amount }}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="empty-state">No transactions yet.</p>
+    {% endfor %}
+    <a href="{% url 'finance:transaction_list' %}" class="btn btn-secondary btn-sm">View All History</a>
+</div>
+{% endblock %}

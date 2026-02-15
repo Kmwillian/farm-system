@@ -1,0 +1,135 @@
+ {% extends 'base.html' %}
+
+{% block page_title %}{{ animal.tag_number }} - {{ animal.name|default:"Unnamed" }}{% endblock %}
+
+{% block content %}
+<!-- Animal Profile Card -->
+<div class="card">
+    {% if animal.photo %}
+    <img src="{{ animal.photo.url }}" style="width:100%; border-radius:10px; margin-bottom:15px;" alt="{{ animal.tag_number }}">
+    {% endif %}
+    
+    <h2 style="color:#2e7d32; margin-bottom:15px;">
+        {{ animal.get_animal_type_display }} {{ animal.tag_number }}
+    </h2>
+    
+    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:15px;">
+        <p style="margin:5px 0;"><strong>Name:</strong> {{ animal.name|default:"N/A" }}</p>
+        <p style="margin:5px 0;"><strong>Breed:</strong> {{ animal.breed|default:"N/A" }}</p>
+        <p style="margin:5px 0;"><strong>Gender:</strong> {{ animal.get_gender_display }}</p>
+        <p style="margin:5px 0;"><strong>Age:</strong> 
+            {% if animal.age_in_months %}
+                {{ animal.age_in_months }} months
+            {% else %}
+                Unknown
+            {% endif %}
+        </p>
+        <p style="margin:5px 0;"><strong>Date of Birth:</strong> {{ animal.date_of_birth|date:"d/m/Y"|default:"Unknown" }}</p>
+        <p style="margin:5px 0;"><strong>Status:</strong> 
+            <span class="badge badge-{% if animal.status == 'active' %}success{% elif animal.status == 'sold' %}warning{% else %}danger{% endif %}">
+                {{ animal.get_status_display }}
+            </span>
+        </p>
+        
+        {% if animal.mother_tag or animal.father_tag %}
+        <p style="margin:10px 0 5px; font-weight:bold;">Lineage:</p>
+        {% if animal.mother_tag %}<p style="margin:5px 0;">Mother: {{ animal.mother_tag }}</p>{% endif %}
+        {% if animal.father_tag %}<p style="margin:5px 0;">Father: {{ animal.father_tag }}</p>{% endif %}
+        {% endif %}
+    </div>
+    
+    <a href="{% url 'dairy:animal_edit' animal.pk %}" class="btn btn-secondary btn-sm">Edit Animal Details</a>
+</div>
+
+<!-- Milk Production (for cows only) -->
+{% if animal.animal_type == 'cow' and animal.gender == 'female' %}
+<div class="card">
+    <div class="card-title">🥛 Milk Production</div>
+    
+    <div class="stat-box" style="background:#e8f5e9;">
+        <div class="stat-value" style="color:#2e7d32;">{{ total_milk_30d|floatformat:1 }}L</div>
+        <div class="stat-label">Total Last 30 Days</div>
+    </div>
+    
+    <a href="{% url 'dairy:milk_add' %}?animal={{ animal.pk }}" class="btn btn-success btn-sm" style="margin:15px 0 10px;">
+        + Record Today's Milk
+    </a>
+    
+    <h4 style="margin:15px 0 10px; font-size:16px;">Recent Records:</h4>
+    {% for milk in milk_records %}
+    <div class="list-item">
+        <div class="list-item-title">{{ milk.date|date:"d/m/Y" }}</div>
+        <div class="list-item-meta">
+            Morning: {{ milk.morning_liters }}L | Evening: {{ milk.evening_liters }}L | 
+            <strong>Total: {{ milk.total_liters }}L</strong>
+        </div>
+    </div>
+    {% empty %}
+    <p style="color:#999; margin-top:10px;">No milk records yet</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Health Records -->
+<div class="card">
+    <div class="card-title">🏥 Health Records</div>
+    
+    <a href="{% url 'dairy:health_add' animal.pk %}" class="btn btn-primary btn-sm">+ Add Health Record</a>
+    
+    {% for record in health_records %}
+    <div class="list-item" style="margin-top:10px;">
+        <div class="list-item-title">
+            {{ record.get_record_type_display }} - {{ record.date|date:"d/m/Y" }}
+        </div>
+        <div class="list-item-meta">
+            {{ record.description|truncatewords:15 }}
+            {% if record.cost > 0 %}<br>Cost: KSh {{ record.cost }}{% endif %}
+            {% if record.next_due_date %}
+            <br><span class="badge badge-warning">Next: {{ record.next_due_date|date:"d/m/Y" }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p style="color:#999; margin-top:10px;">No health records yet</p>
+    {% endfor %}
+</div>
+
+<!-- Pregnancy Records (for females) -->
+{% if animal.gender == 'female' %}
+<div class="card">
+    <div class="card-title">🤰 Pregnancy Records</div>
+    
+    <a href="{% url 'dairy:pregnancy_add' animal.pk %}" class="btn btn-primary btn-sm">+ Add Pregnancy</a>
+    
+    {% for pregnancy in pregnancies %}
+    <div class="list-item" style="margin-top:10px;">
+        <div class="list-item-title">
+            Breeding Date: {{ pregnancy.breeding_date|date:"d/m/Y" }}
+        </div>
+        <div class="list-item-meta">
+            Expected Delivery: {{ pregnancy.expected_delivery|date:"d/m/Y" }}<br>
+            Status: <span class="badge badge-info">{{ pregnancy.get_status_display }}</span>
+            {% if pregnancy.status == 'delivered' %}
+            <br>Offspring: {{ pregnancy.offspring_count }}
+            {% if pregnancy.actual_delivery %} | Delivered: {{ pregnancy.actual_delivery|date:"d/m/Y" }}{% endif %}
+            {% endif %}
+        </div>
+        <a href="{% url 'dairy:pregnancy_update' pregnancy.pk %}" class="btn btn-sm btn-secondary" style="margin-top:8px;">
+            Update Status
+        </a>
+    </div>
+    {% empty %}
+    <p style="color:#999; margin-top:10px;">No pregnancy records yet</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Notes -->
+{% if animal.notes %}
+<div class="card">
+    <div class="card-title">📝 Notes</div>
+    <p style="white-space:pre-wrap;">{{ animal.notes }}</p>
+</div>
+{% endif %}
+
+{% endblock %}

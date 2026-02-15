@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Farm Dashboard{% endblock %}
+
+{% block content %}
+<!-- Quick Stats -->
+<div class="card">
+    <div class="card-title">📊 Today's Summary</div>
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_cows }}</div>
+            <div class="stat-label">🐄 Cows</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ total_sheep }}</div>
+            <div class="stat-label">🐑 Sheep</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ today_milk|floatformat:1 }}</div>
+            <div class="stat-label">🥛 Liters Today</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ active_crops }}</div>
+            <div class="stat-label">🌾 Active Crops</div>
+        </div>
+    </div>
+</div>
+
+<!-- Finance Summary -->
+<div class="card">
+    <div class="card-title">💰 This Month</div>
+    <div class="stat-grid">
+        <div class="stat-box" style="background: #e8f5e9;">
+            <div class="stat-value" style="color: #2e7d32;">KSh {{ month_income|floatformat:0 }}</div>
+            <div class="stat-label">Income</div>
+        </div>
+        <div class="stat-box" style="background: #ffebee;">
+            <div class="stat-value" style="color: #c62828;">KSh {{ month_expense|floatformat:0 }}</div>
+            <div class="stat-label">Expenses</div>
+        </div>
+    </div>
+    <div class="stat-box" style="background: {% if month_profit >= 0 %}#e3f2fd{% else %}#fff3e0{% endif %}; margin-top: 10px;">
+        <div class="stat-value" style="color: {% if month_profit >= 0 %}#1976d2{% else %}#f57c00{% endif %};">
+            KSh {{ month_profit|floatformat:0 }}
+        </div>
+        <div class="stat-label">Net Profit</div>
+    </div>
+</div>
+
+<!-- Alerts & Reminders -->
+{% if health_due or pregnancies_due or harvest_due %}
+<div class="card">
+    <div class="card-title">⚠️ Alerts & Reminders</div>
+    
+    {% if health_due %}
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #d32f2f;">🏥 Health Checkups Due:</strong>
+        {% for record in health_due %}
+        <div class="list-item" style="margin-top: 8px;">
+            <div class="list-item-title">{{ record.animal.tag_number }}</div>
+            <div class="list-item-meta">{{ record.get_record_type_display }} - Due: {{ record.next_due_date|date:"d/m/Y" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if pregnancies_due %}
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #f57c00;">🤰 Deliveries Expected:</strong>
+        {% for preg in pregnancies_due %}
+        <div class="list-item" style="margin-top: 8px;">
+            <div class="list-item-title">{{ preg.animal.tag_number }}</div>
+            <div class="list-item-meta">Expected: {{ preg.expected_delivery|date:"d/m/Y" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if harvest_due %}
+    <div>
+        <strong style="color: #388e3c;">🌾 Harvest Due Soon:</strong>
+        {% for season in harvest_due %}
+        <div class="list-item" style="margin-top: 8px;">
+            <div class="list-item-title">{{ season.get_crop_type_display }} - {{ season.farm.name }}</div>
+            <div class="list-item-meta">Expected: {{ season.expected_harvest_date|date:"d/m/Y" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-title">⚡ Quick Actions</div>
+    <a href="{% url 'dairy:milk_add' %}" class="btn btn-success">+ Record Milk Production</a>
+    <a href="{% url 'finance:transaction_add' %}?type=income" class="btn btn-primary">+ Add Income</a>
+    <a href="{% url 'finance:transaction_add' %}?type=expense" class="btn btn-secondary">+ Add Expense</a>
+</div>
+
+<!-- Recent Activity -->
+{% if recent_transactions %}
+<div class="card">
+    <div class="card-title">📋 Recent Transactions</div>
+    {% for trans in recent_transactions %}
+    <div class="list-item">
+        <div class="list-item-title">
+            {% if trans.transaction_type == 'income' %}+{% else %}-{% endif %}
+            KSh {{ trans.amount|floatformat:0 }}
+            <span class="badge {% if trans.transaction_type == 'income' %}badge-success{% else %}badge-warning{% endif %}">
+                {{ trans.get_category_display }}
+            </span>
+        </div>
+        <div class="list-item-meta">{{ trans.description|truncatewords:8 }} - {{ trans.date|date:"d/m/Y" }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

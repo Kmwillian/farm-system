@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block page_title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <div class="empty-icon">⚠️</div>
+    <div class="card-title">Are you sure?</div>
+    <p style="margin-bottom: 20px; color: #666;">
+        You are about to delete the transaction: <br>
+        <strong>{{ transaction.get_category_display }} - KSh {{ transaction.amount }}</strong>
+    </p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background: #dc3545; color: white;">Yes, Delete Forever</button>
+        <a href="{% url 'finance:transaction_edit' transaction.pk %}" class="btn btn-secondary">No, Go Back</a>
+    </form>
+</div>
+{% endblock %}
